@@ -111,4 +111,5 @@ cascade-weighted/
 
 eval_result/
 tmp/
-netfill-cascade
+netfill-data
+output
