@@ -6,6 +6,7 @@ import signal
 
 from glob import glob
 from scipy.spatial.distance import cdist
+from scipy.io import savemat
 from functools import wraps
 
 
@@ -60,3 +61,19 @@ def sampling_weights_by_order(length):
     w = 1 / (np.arange(10) + 1)[::-1]
     w /= w.sum()
     return w
+
+
+def prepare_cascade_for_netfill(g, beta, p, input_path, output_path):
+    obs, c = pkl.load(open(input_path, 'rb'))
+    D = np.array((c >= 0), dtype=np.double)
+    SD = np.zeros(D.shape, dtype=np.double)
+    SD[obs] = 1
+    data_dict = {
+        'D': D,
+        'SD': SD,
+        'p': p,
+        'beta': beta
+    }
+    if not os.path.exists(os.path.dirname(output_path)):
+        os.makedirs(os.path.dirname(output_path))
+    savemat(output_path, data_dict, oned_as='row', do_compression=True)
