@@ -1,5 +1,5 @@
 from minimum_steiner_tree import min_steiner_tree
-
+    
 
 def infection_probability(g, obs, sampler, error_estimator):
     """

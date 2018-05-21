@@ -1,12 +1,12 @@
 #! /bin/zsh
 
-graph="grqc"
+graph="infectious"
 n_cascades=100
 n_observation_rounds=1
 # n_cascades=8
 # n_observation_rounds=1
 cascade_model="si"
-graph_suffix="_d_0.1"
+graph_suffix="_0.1"
 
 obs_method="uniform"
 obs_fraction=0.5
@@ -16,7 +16,7 @@ min_size=100
 max_size=1000
 
 # works for SI
-cascade_fraction=0.05
+cascade_fraction=0.1
 dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-om${obs_method}"
 
 # copy from existing cascades
