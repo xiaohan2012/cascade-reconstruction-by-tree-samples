@@ -55,7 +55,7 @@ def observe_cascade(c, source, q, method='uniform',
         raise ValueError('unknown method {}'.format(method))
 
 
-@timeout(2)
+@timeout(5)
 def si(g, p, source=None, stop_fraction=0.5):
     """
     g: the graph
