@@ -21,17 +21,19 @@ def test_get_infection_time(line):
     assert_array_equal(time, [0, 1, 2, 3])
 
 
-@pytest.mark.parametrize('return_tree_edges', [True, False])
-def test_ic(line, p, return_tree_edges):
-    source, time, tree_edges = ic(line, p, 0, return_tree_edges=return_tree_edges)
+@pytest.mark.parametrize('stop_fraction, expected_time, expected_edges',
+                         [
+                             (0.5, [0, 1, -1, -1], [(0, 1)]),
+                             (1.0, [0, 1,  2,  3], [(0, 1), (1, 2), (2, 3)])])
+def test_ic(line, p, stop_fraction, expected_time, expected_edges):
+    source, time, tree_edges = ic(line, p, 0,
+                                  stop_fraction=stop_fraction,
+                                  return_tree_edges=True)
 
     assert source == 0
-    assert_array_equal(time, [0, 1, 2, 3])
+    assert_array_equal(time, expected_time)
 
-    if return_tree_edges:
-        assert tree_edges == [(0, 1), (1, 2), (2, 3)]
-    else:
-        assert tree_edges is None
+    assert tree_edges == expected_edges
 
 
 @pytest.fixture
@@ -46,63 +48,3 @@ def tree1():
     vfilt[4] = False
     g.set_vertex_filter(vfilt)
     return g
-
-
-@pytest.mark.parametrize('tree, expected',
-                         [(line(), [3]),
-                          (tree1(), [2, 3])])
-def test_observe_cascade_on_leaves(tree, expected):
-    c = np.array([0, 1, 2, 3])  # dummy
-    obs = observe_cascade(c,
-                          None, q=1.0,
-                          method='leaves',
-                          tree=tree, source_includable=True)
-    assert list(obs) == expected
-
-
-@pytest.mark.parametrize('tree, expected',
-                         [(line(), [3]),
-                          (tree1(), [2, 3])])
-def test_observe_cascade_on_leaves(tree, expected):
-    c = np.array([0, 1, 2, 3])  # dummy
-    obs = observe_cascade(c,
-                          None, q=1.0,
-                          method='leaves',
-                          tree=tree, source_includable=True)
-    assert list(obs) == expected
-    
-
-
-@pytest.mark.parametrize('tree, q, expected',
-                         [
-                             (line(), 0.75, [0, 1, 2]),
-                             (tree(), 0.75, [0, 1, 2]),
-
-                             (line(), 0.5, [0, 1]),
-                             (tree(), 0.5, [0, 1])])
-def test_observe_bfs_head(tree, q, expected):
-    c = np.array([0, 1, 2, 3])  # dummy
-    obs = observe_cascade(c,
-                          0, q=q,
-                          method='bfs-head',
-                          tree=tree, source_includable=True)
-    assert list(obs) == expected
-
-
-
-@pytest.mark.parametrize('tree, q, expected',
-                         [
-                             (line(), 0.75, [1, 2, 3]),
-                             (tree(), 0.75, [1, 2, 3]),
-
-                             (line(), 0.5, [2, 3]),
-                             (tree(), 0.5, [2, 3])])
-def test_observe_bfs_tail(tree, q, expected):
-    c = np.array([0, 1, 2, 3])  # dummy
-    obs = observe_cascade(c,
-                          0, q=q,
-                          method='bfs-tail',
-                          tree=tree, source_includable=True)
-    assert list(obs) == expected
-
-    

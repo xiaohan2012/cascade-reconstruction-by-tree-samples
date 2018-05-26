@@ -7,12 +7,15 @@ from graph_tool import Graph, GraphView, PropertyMap
 from graph_tool.topology import shortest_distance, label_components
 from graph_tool.search import bfs_search
 
-from tqdm import tqdm
-
 from helpers import infected_nodes, timeout, sampling_weights_by_order
-from graph_helpers import filter_graph_by_edges, get_leaves, BFSNodeCollector, reverse_bfs
+from graph_helpers import BFSNodeCollector, reverse_bfs
+
 
 MAXINT = np.iinfo(np.int32).max
+
+
+class CascadeTooSmall(Exception):
+    pass
 
 
 def observe_cascade(c, source, q, method='uniform',
@@ -155,12 +158,15 @@ def get_infection_time(g, source, return_edges=False):
         return time
 
 
-def ic(g, p, source=None, return_tree_edges=False,
-       min_size=0, max_size=1e10):
+def ic(g, p, source=None,
+       stop_fraction=1.0,
+       return_tree_edges=False):
     """
     graph_tool version of simulating cascade
     return np.ndarray on vertices as the infection time in cascade
     uninfected node has dist -1
+
+    stop_fraction: detemines how large the snapshot is.
     """
     if source is None:
         source = random.choice(np.arange(g.num_vertices(), dtype=int))
@@ -169,20 +175,29 @@ def ic(g, p, source=None, return_tree_edges=False,
     times = get_infection_time(gv, source, return_edges=False)
     size = len(infected_nodes(times))
 
-    if size < min_size or size > max_size:
-        # size does not fit
-        # early stopping to save time
-        return source, times, None
+    min_size = int(stop_fraction * g.num_vertices())
+
+    if size < min_size:
+        # size does not fit, early stopping to save time
+        raise CascadeTooSmall()
     
     stuff = get_infection_time(gv, source, return_edges=return_tree_edges)
-
+    
     if not return_tree_edges:
         times = stuff
         tree_edges = None
     else:
         times, tree_edges = stuff
-        # tree = filter_graph_by_edges(gv, tree_edges)
-    
+
+    # truncate the infection to fit size
+    times[times == -1] = (times.max() + 1)
+    uninfected = times.argsort()[min_size:]
+    times[uninfected] = -1
+
+    if tree_edges is not None:
+        inf_nodes = set(infected_nodes(times))
+        tree_edges = [e for e in tree_edges if e[0] in inf_nodes and e[1] in inf_nodes]
+            
     return source, times, tree_edges
 
 

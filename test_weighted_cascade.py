@@ -23,8 +23,7 @@ def test_gen_input(g, cascade_model, weighted, source):
         p = g.new_edge_property('float')
         p.set_value(0.8)
     # print(cascade_model, weighted, source)
-    rows = [gen_input(g, p=p, model=cascade_model, source=source, stop_fraction=0.1,
-                      min_size=5, max_size=99999)
+    rows = [gen_input(g, p=p, model=cascade_model, source=source, stop_fraction=0.1)
             for i in range(10)]
 
     # make sure no two cascades are the same
@@ -41,19 +40,3 @@ def test_gen_input(g, cascade_model, weighted, source):
             c = r[1]
             frac = len(infected_nodes(c)) / g.num_vertices()
             assert frac <= 0.11
-
-
-def test_gen_input_with_leaves_observed():
-    g = Graph(directed=True)
-    g.add_vertex(4)
-    g.add_edge_list([(0, 1), (1, 2), (2, 3)])
-    p = g.new_edge_property('float')
-    p.set_value(1.0)
-
-    obs, c, tree = gen_input(g, source=0, model='ic',
-                             p=p,
-                             return_tree=True,
-                             observation_method='leaves',
-                             min_size=0, max_size=100)
-    assert list(obs) == [3]
-    assert list(c) == list(range(4))
