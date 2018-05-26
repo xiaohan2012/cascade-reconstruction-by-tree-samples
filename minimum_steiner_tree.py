@@ -45,7 +45,6 @@ def build_closure(g, terminals,
     weights = np.array([c for _, _, c in edges_with_weight])
     eweight.set_2d_array(weights)
 
-    # 
     vfilt = gc.new_vertex_property('bool')
     vfilt.a = False
     for v in terminals:
@@ -54,7 +53,7 @@ def build_closure(g, terminals,
     return gc, eweight, r2pred
 
 
-def min_steiner_tree(g, obs_nodes, debug=False, verbose=False):
+def min_steiner_tree(g, obs_nodes, return_type='tree', debug=False, verbose=False):
     if g.num_vertices() == len(obs_nodes):
         print('it\'s a minimum spanning tree problem')
         
@@ -73,15 +72,18 @@ def min_steiner_tree(g, obs_nodes, debug=False, verbose=False):
         assert recovered_edges, 'empty!'
         for i, j in recovered_edges:
             tree_edges.add(((i, j)))
-            
+
     tree_nodes = list(set(itertools.chain(*tree_edges)))
 
-    vfilt = g.new_vertex_property('bool')
-    vfilt.set_value(False)
-    for n in tree_nodes:
-        vfilt[n] = True
-    
-    efilt = g.new_edge_property('bool')
-    for i, j in tree_edges:
-        efilt[g.edge(i, j)] = 1
-    return GraphView(g, efilt=efilt, vfilt=vfilt)
+    if return_type == 'nodes':
+        return tree_nodes
+    elif return_type == 'tree':
+        vfilt = g.new_vertex_property('bool')
+        vfilt.set_value(False)
+        for n in tree_nodes:
+            vfilt[n] = True
+        
+        efilt = g.new_edge_property('bool')
+        for i, j in tree_edges:
+            efilt[g.edge(i, j)] = 1
+        return GraphView(g, efilt=efilt, vfilt=vfilt)

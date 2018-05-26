@@ -125,12 +125,31 @@ def gen_inputs_varying_obs(
             yield obs, c, tree
 
     
-def one_run(g, edge_weights, input_path, output_dir):
+def one_run(g, edge_weights, input_path, output_dir, method='our'):
+    basename = os.path.basename(input_path)
+    output_path = os.path.join(output_dir, basename)
+
+    if os.path.exists(output_path):
+        # print(output_path, 'procssed, skip')
+        return
+
     obs, c = pkl.load(open(input_path, 'rb'))
-    inf_probas = infection_probability_shortcut(g, edge_weights=edge_weights, obs=obs)
+
+    if method == 'our':
+        inf_probas = infection_probability_shortcut(
+            g, edge_weights=edge_weights, obs=obs)
+    elif method == 'min-steiner-tree':
+        from minimum_steiner_tree import min_steiner_tree
+        nodes = min_steiner_tree(g, obs, return_type='nodes')
+
+        # make it a binary vector
+        inf_probas = np.zeros(len(c))
+        inf_probas[nodes] = 1
+    else:
+        raise ValueError('unsupported method')
     
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    basename = os.path.basename(input_path)
+
     pkl.dump({'inf_probas': inf_probas},
-             open(os.path.join(output_dir, basename), 'wb'))
+             open(output_path, 'wb'))
