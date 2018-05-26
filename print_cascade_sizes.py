@@ -6,19 +6,20 @@ from graph_helpers import load_graph_by_name
 from helpers import infected_nodes, cascade_source
 from collections import Counter
 
-graph = 'grqc-sto'
+graph = 'grqc'
 model = 'ic'
 # suffix = '_tmp'
 # cascade_fraction = 0
 suffix = ''
-cascade_fraction = 0.01
-obs_frac = "0.2"
-cascade_dir = 'cascade-weighted'
+cascade_fraction = 0.25
+obs_frac = "0.5"
+cascade_dir = 'cascade'
 
-dirname = '{}/{}-m{}-s{}-o{}/*'.format(
+dirname = '{}/{}-m{}-s{}-o{}-omuniform/*'.format(
     cascade_dir,
     graph, model, cascade_fraction, obs_frac)
 
+print(dirname)
 g = load_graph_by_name(graph, weighted=True, suffix=suffix)
 
 gprop = g.graph_properties

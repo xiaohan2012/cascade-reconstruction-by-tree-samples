@@ -15,8 +15,10 @@ from experiment import one_run
 infection_proba = 0.1
 
 graphs = ['infectious', 'lattice-1024']
-methods = ['min-steiner-tree']
-# 'our',
+methods = ['our']
+# 'min-steiner-tree'
+
+cascade_model = 'ic'
 # graphs = ['grqc']
 # obs_fractions = ["0.5"]
 obs_fractions = ["0.5", "0.6", "0.7", "0.8", "0.9"]
@@ -32,7 +34,7 @@ for graph, obs_fraction, cascade_fraction, method \
     g = load_graph('data/{}/graph_weighted_{}.gt'.format(graph, infection_proba))
     edge_weights = g.edge_properties['weights']
 
-    dataset_id = "{}-msi-s{}-o{}-omuniform".format(graph, cascade_fraction, obs_fraction)
+    dataset_id = "{}-m{}-s{}-o{}-omuniform".format(graph, cascade_model, cascade_fraction, obs_fraction)
     print('method', method)
     print('dataset_id', dataset_id)
 

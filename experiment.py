@@ -90,7 +90,7 @@ def gen_inputs_varying_obs(
                             break
                         except CascadeTooSmall:
                             continue
-
+                else:
                     raise ValueError('unknown cascade model')
                 break
             except TimeoutError:
