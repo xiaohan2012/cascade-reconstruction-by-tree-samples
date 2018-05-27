@@ -1,21 +1,22 @@
 import itertools
 import numpy as np
 from graph_tool import Graph, GraphView
-from graph_tool.search import bfs_search
-from graph_tool.topology import min_spanning_tree
-
-from graph_helpers import init_visitor, extract_edges_from_pred
+# from graph_tool.topology import shortest_distance
+from graph_tool.topology import min_spanning_tree, shortest_distance
+from graph_tool.stats import remove_self_loops
+from graph_helpers import extract_edges_from_pred
 
 
 def build_closure(g, terminals,
+                  p=None,
                   debug=False,
                   verbose=False):
     """build the transitive closure on terminals"""
     def get_edges(dist, root, terminals):
         """get adjacent edges to root with weight"""
-        return ((root, t, dist[t])
+        return {(root, t, dist[t])
                 for t in terminals
-                if dist[t] != -1 and t != root)
+                if dist[t] != -1 and t != root}
 
     terminals = list(terminals)
     gc = Graph(directed=False)
@@ -25,17 +26,34 @@ def build_closure(g, terminals,
     edges_with_weight = set()
     r2pred = {}  # root to predecessor map (from bfs)
     
-    # bfs to all other nodes
+    # shortest path to all other nodes
     for r in terminals:
         if debug:
             print('root {}'.format(r))
-        vis = init_visitor(g, r)
-        bfs_search(g, source=r, visitor=vis)
-        new_edges = set(get_edges(vis.dist, r, terminals))
+
+        targets = list(set(terminals) - {r})
+        dist_map, pred_map = shortest_distance(
+            g,
+            source=r,
+            target=targets,
+            weights=p,
+            pred_map=True)
+        dist_map = dict(zip(targets, dist_map))
+        # print(dist_map)
+        # print(pred_map)
+        new_edges = get_edges(dist_map, r, targets)
+        # if p is None:
+        #     vis = init_visitor(g, r)
+        #     bfs_search(g, source=r, visitor=vis)
+        #     new_edges = set(get_edges(vis.dist, r, terminals))
+        # else:
+        #     print('weighted graph')
+
         if debug:
             print('new edges {}'.format(new_edges))
         edges_with_weight |= new_edges
-        r2pred[r] = vis.pred
+        # r2pred[r] = vis.pred
+        r2pred[r] = pred_map
 
     for u, v, c in edges_with_weight:
         gc.add_edge(u, v)
@@ -53,11 +71,13 @@ def build_closure(g, terminals,
     return gc, eweight, r2pred
 
 
-def min_steiner_tree(g, obs_nodes, return_type='tree', debug=False, verbose=False):
+def min_steiner_tree(g, obs_nodes, p=None, return_type='tree', debug=False, verbose=False):
+    assert len(obs_nodes) > 0, 'no terminals'
+    
     if g.num_vertices() == len(obs_nodes):
         print('it\'s a minimum spanning tree problem')
         
-    gc, eweight, r2pred = build_closure(g, obs_nodes,
+    gc, eweight, r2pred = build_closure(g, obs_nodes, p=p,
                                         debug=debug, verbose=verbose)
     # print('gc', gc)
 
@@ -65,13 +85,13 @@ def min_steiner_tree(g, obs_nodes, return_type='tree', debug=False, verbose=Fals
     tree = GraphView(gc, directed=False, efilt=tree_map)
 
     tree_edges = set()
-    # print('tree', tree)
+
     for e in tree.edges():
         u, v = map(int, e)
         recovered_edges = extract_edges_from_pred(u, v, r2pred[u])
         assert recovered_edges, 'empty!'
         for i, j in recovered_edges:
-            tree_edges.add(((i, j)))
+            tree_edges.add((i, j))
 
     tree_nodes = list(set(itertools.chain(*tree_edges)))
 
@@ -86,4 +106,15 @@ def min_steiner_tree(g, obs_nodes, return_type='tree', debug=False, verbose=Fals
         efilt = g.new_edge_property('bool')
         for i, j in tree_edges:
             efilt[g.edge(i, j)] = 1
-        return GraphView(g, efilt=efilt, vfilt=vfilt)
+        subg = GraphView(g, efilt=efilt, vfilt=vfilt, directed=False)
+
+        if p is not None:
+            weights = subg.new_edge_property('float')
+            for e in subg.edges():
+                weights[e] = p[e]
+        else:
+            weights = None
+        # remove cycles
+        tree_map = min_spanning_tree(subg, weights, root=None)
+        t = GraphView(g, directed=False, vfilt=vfilt, efilt=tree_map)
+        return t

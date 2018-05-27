@@ -268,7 +268,6 @@ class DistPredVisitor(BFSVisitor):
         self.pred[t] = s
         self.dist[t] = self.dist[s] + 1
 
-
 def init_visitor(g, root):
     dist = defaultdict(lambda: -1)
     dist[root] = 0
