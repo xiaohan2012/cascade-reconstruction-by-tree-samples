@@ -8,7 +8,6 @@ from graph_tool import Graph, GraphView, load_graph
 from graph_tool.search import bfs_search, BFSVisitor
 from graph_tool.generation import lattice
 from graph_tool.topology import random_spanning_tree, label_components
-from graph_tool.centrality import pagerank
 
 
 def build_graph_from_edges(edges):

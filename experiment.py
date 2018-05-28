@@ -5,7 +5,7 @@ from time import time
 
 from cascade_generator import si, ic, observe_cascade, CascadeTooSmall
 from helpers import TimeoutError
-from inf_helpers import infection_probability_shortcut
+from inf_helpers import infection_probability_shortcut, pagerank_scores
 from graph_helpers import filter_graph_by_edges
 
 
@@ -124,11 +124,19 @@ def one_run(g, edge_weights, input_path, output_dir, method='our'):
             g, edge_weights=edge_weights, obs=obs)
     elif method == 'min-steiner-tree':
         from minimum_steiner_tree import min_steiner_tree
-        nodes = min_steiner_tree(g, obs, return_type='nodes')
+        # we want the product of weights, so apply negative log
+        nlog_edge_weights = g.new_edge_property('float')
+        nlog_edge_weights.a = -np.log(edge_weights.a)
+        nodes = min_steiner_tree(g, obs,
+                                 p=nlog_edge_weights,
+                                 return_type='nodes')
 
         # make it a binary vector
         inf_probas = np.zeros(len(c))
         inf_probas[nodes] = 1
+    elif method == 'pagerank':
+        # inf_probas is not actually probability
+        inf_probas = pagerank_scores(g, obs, weight=edge_weights)
     else:
         raise ValueError('unsupported method')
     

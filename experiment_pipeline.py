@@ -15,8 +15,9 @@ from experiment import one_run
 infection_proba = 0.1
 
 graphs = ['infectious', 'lattice-1024']
-methods = ['our']
-# 'min-steiner-tree'
+# graphs = ['grqc']
+methods = ['pagerank', 'min-steiner-tree']
+
 
 cascade_model = 'ic'
 # graphs = ['grqc']

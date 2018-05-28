@@ -3,7 +3,6 @@ import numpy as np
 from graph_tool import Graph, GraphView
 # from graph_tool.topology import shortest_distance
 from graph_tool.topology import min_spanning_tree, shortest_distance
-from graph_tool.stats import remove_self_loops
 from graph_helpers import extract_edges_from_pred
 
 
