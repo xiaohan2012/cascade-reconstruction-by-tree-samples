@@ -1,21 +1,6 @@
 import numpy as np
 import random
-from graph_helpers import k_hop_neighbors, pagerank_scores
-
-
-def build_earlier_root_sampler(g, obs, c, **kwargs):
-    def f():
-        return min(obs, key=lambda o: c[o])
-    return f
-
-
-def build_early_nbrs_sampler(g, obs, c, k=1, **kwargs):
-    earliest_node = min(obs, key=lambda o: c[o])
-    nbrs = list(k_hop_neighbors(earliest_node, g, k=k)) + [earliest_node]
-
-    def f():
-        return random.choice(nbrs)
-    return f
+from graph_helpers import pagerank_scores
 
 
 def build_root_sampler_by_pagerank_score(g, obs, c, eps=0.0):
@@ -48,3 +33,28 @@ def build_out_degree_root_sampler(g, power=2):
     def aux():
         return np.random.choice(g.num_vertices(), p=out_deg_norm)
     return aux
+
+
+def get_value_or_raise(d, key):
+    if key in d:
+        v = d[key]
+        del d[key]
+        return v
+    else:
+        raise KeyError('`{}` is not there'.format(d))
+
+
+def get_root_sampler_by_name(name, **kwargs):
+    if name == 'true_root':
+        c = get_value_or_raise(kwargs, 'c')
+        assert c is not None, 'cascade `c` should be give'
+        return build_true_root_sampler(c)
+    elif name == 'pagerank':
+        g = get_value_or_raise(kwargs, 'g')
+        obs = get_value_or_raise(kwargs, 'obs')
+        c = get_value_or_raise(kwargs, 'c')
+        return build_root_sampler_by_pagerank_score(g, obs, c, **kwargs)
+    elif name == 'random':
+        return None
+    else:
+        raise ValueError('valid name ', name)

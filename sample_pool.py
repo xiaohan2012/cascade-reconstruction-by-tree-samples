@@ -44,6 +44,8 @@ class TreeSamplePool():
         # print('DEBUG: TreeSamplePool.with_inc_sampling=', self.with_inc_sampling)
 
     def fill(self, obs, **kwargs):
+        """root_sampler in kwargs
+        """
         self._samples = sample_steiner_trees(
             self.g, obs,
             method=self.method,

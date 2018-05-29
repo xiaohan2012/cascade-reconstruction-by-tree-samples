@@ -7,6 +7,7 @@ from cascade_generator import si, ic, observe_cascade, CascadeTooSmall
 from helpers import TimeoutError
 from inf_helpers import infection_probability_shortcut, pagerank_scores
 from graph_helpers import filter_graph_by_edges
+from root_sampler import get_root_sampler_by_name
 
 
 def gen_input(g, source=None, cascade_path=None, stop_fraction=0.25, p=0.5, q=0.1, model='si',
@@ -88,7 +89,8 @@ def gen_inputs_varying_obs(
                             else:
                                 tree = None
                             break
-                        except CascadeTooSmall:
+                        except CascadeTooSmall as e:
+                            # print(str(e))
                             continue
                 else:
                     raise ValueError('unknown cascade model')
@@ -109,7 +111,8 @@ def gen_inputs_varying_obs(
             yield obs, c, tree
 
     
-def one_run(g, edge_weights, input_path, output_dir, method='our'):
+def one_run(g, edge_weights, input_path, output_dir, method='our',
+            **kwargs):
     basename = os.path.basename(input_path)
     output_path = os.path.join(output_dir, basename)
 
@@ -120,8 +123,11 @@ def one_run(g, edge_weights, input_path, output_dir, method='our'):
     obs, c = pkl.load(open(input_path, 'rb'))
 
     if method == 'our':
+        root_sampler_name = kwargs.get('root_sampler_name')
+        root_sampler = get_root_sampler_by_name(root_sampler_name, g=g, obs=obs, c=c)
         inf_probas = infection_probability_shortcut(
-            g, edge_weights=edge_weights, obs=obs)
+            g, edge_weights=edge_weights, obs=obs,
+            root_sampler=root_sampler)
     elif method == 'min-steiner-tree':
         from minimum_steiner_tree import min_steiner_tree
         # we want the product of weights, so apply negative log
