@@ -1,3 +1,4 @@
+import random
 from graph_helpers import (extract_steiner_tree,
                            gen_random_spanning_tree,
                            filter_graph_by_edges,

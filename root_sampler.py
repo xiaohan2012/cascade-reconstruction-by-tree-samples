@@ -54,7 +54,7 @@ def get_root_sampler_by_name(name, **kwargs):
         obs = get_value_or_raise(kwargs, 'obs')
         c = get_value_or_raise(kwargs, 'c')
         return build_root_sampler_by_pagerank_score(g, obs, c, **kwargs)
-    elif name == 'random':
+    elif name is None:
         return None
     else:
         raise ValueError('valid name ', name)
