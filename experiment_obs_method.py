@@ -48,7 +48,7 @@ for setting in settings:
         g = load_graph('data/{}/graph_weighted_{}.gt'.format(graph, infection_proba))
         edge_weights = g.edge_properties['weights']
 
-        dataset_id = "{}-m{}-s{}-o{}-omuniform".format(graph, cascade_model, cascade_fraction, obs_fraction)
+        dataset_id = "{}-m{}-s{}-o{}-omleaves".format(graph, cascade_model, cascade_fraction, obs_fraction)
         print('method', method)
         print('dataset_id', dataset_id)
 
