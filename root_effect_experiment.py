@@ -13,12 +13,8 @@ from experiment import one_run
 
 method = 'our'
 
-cascade_model = 'si'
 root_sampler_names = ['true_root']
-if cascade_model == 'si':
-    suffix = "0.1"
-elif cascade_model == 'ic':
-    suffix = "uniform"
+cascade_models = ['si', 'ic']
 
 
 # a batch of settings to iterate through
@@ -44,13 +40,16 @@ for setting in settings:
     graphs, obs_fractions, cascade_fractions = setting['graphs'], \
                                                setting['obs_fractions'], \
                                                setting['cascade_fractions']
-    for graph, obs_fraction, cascade_fraction, root_sampler_name \
+    for graph, cascade_model, obs_fraction, cascade_fraction, root_sampler_name \
             in product(
-                graphs, obs_fractions, cascade_fractions, root_sampler_names):
+                graphs, cascade_models, obs_fractions, cascade_fractions,
+                root_sampler_names):
         if cascade_model == 'ic':
             # use reversed graph
+            suffix = "uniform"
             graph_path = 'data/{}/graph_weighted_{}.gt'.format(graph, suffix + '_rev')
         else:
+            suffix = "0.1"
             graph_path = 'data/{}/graph_weighted_{}.gt'.format(graph, suffix)
 
         print('reading graph from ', graph_path)
