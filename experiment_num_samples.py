@@ -14,7 +14,7 @@ from experiment import one_run
 method = 'our'
 
 n_samples = [5000, 10000, 15000, 20000, 25000]
-cascade_models = ['si', 'ic']
+cascade_models = ['si']
 
 
 # a batch of settings to iterate through
@@ -60,7 +60,8 @@ for setting in settings:
         if not os.path.exists(os.path.dirname(eval_result_path)):
             os.makedirs(os.path.dirname(eval_result_path))
                 
-        rows = Parallel(n_jobs=-1)(delayed(one_run)(g, edge_weights, input_path, output_dir, method)
+        rows = Parallel(n_jobs=-1)(delayed(one_run)(g, edge_weights, input_path, output_dir, method,
+                                                    n_sample=n_sample)
                                    for input_path in tqdm(glob(input_dir + '*.pkl')))
         assert len(rows) > 0, 'nothing calculated'
 
