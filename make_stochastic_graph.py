@@ -23,7 +23,7 @@ assert np.all(np.isclose(in_deg_weighted.a, 1)), 'maybe self-loops are not remov
 
 g.edge_properties['weights'] = w
 
-g.save('data/{}/graph_sto.gt'.format(graph_name))
+g.save('data/{}/graph_weighted_sto.gt'.format(graph_name))
 
 rev_g = reverse_edge_weights(g)
 
@@ -31,5 +31,5 @@ out_deg_weighted = g.degree_property_map('out', weight=rev_g.edge_properties['we
 assert np.all(np.isclose(out_deg_weighted.a, 1))
 
 
-rev_g.save('data/{}/graph_sto_rev.gt'.format(graph_name))
+rev_g.save('data/{}/graph_weighted_sto_rev.gt'.format(graph_name))
 

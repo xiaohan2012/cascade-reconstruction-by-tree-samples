@@ -1,6 +1,8 @@
 #! /bin/zsh
 
-graph="lattice-1024"
+graphs=(infectious lattice-1024)
+# graphs=(grqc)
+
 n_cascades=100
 n_observation_rounds=1
 # n_cascades=8
@@ -18,17 +20,18 @@ cascade_fractions=(0.1 0.2 0.3 0.4 0.5)
 # cascade_fractions=(0.1)
 # works for SI
 
-for obs_fraction in ${obs_fractions}; do
-    for cascade_fraction in ${cascade_fractions}; do
-	dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-om${obs_method}"
+for graph in ${graphs}; do
+    for obs_fraction in ${obs_fractions}; do
+	for cascade_fraction in ${cascade_fractions}; do
+	    dataset_id="${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-om${obs_method}"
 
-	# copy from existing cascades
-	output_dir="cascade/${dataset_id}"
-	from_cascade_dir="cascade/${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-ombfs-head"
+	    # copy from existing cascades
+	    output_dir="cascade/${dataset_id}"
+	    from_cascade_dir="cascade/${graph}-m${cascade_model}-s${cascade_fraction}-o${obs_fraction}-ombfs-head"
 
-	# print "ouput to ${output_dir}"
-	if [ ! -f "${output_dir}/99.pkl" ]; then
-	    print "
+	    # print "ouput to ${output_dir}"
+	    if [ ! -f "${output_dir}/99.pkl" ]; then
+		print "
 	python3 simulate_cascades.py \
 		-g ${graph} \
 		-n ${n_cascades} \
@@ -41,7 +44,8 @@ for obs_fraction in ${obs_fractions}; do
 		-s ${cascade_fraction} \
 		--observation_method ${obs_method}
 "
-	    # -c ${from_cascade_dir}
-	fi
+		# -c ${from_cascade_dir}
+	    fi
+	done
     done
 done

@@ -179,7 +179,7 @@ def ic(g, p, source=None,
 
     if size < min_size:
         # size does not fit, early stopping to save time
-        raise CascadeTooSmall()
+        raise CascadeTooSmall('{} < {}'.format(size, min_size))
     
     stuff = get_infection_time(gv, source, return_edges=return_tree_edges)
     
