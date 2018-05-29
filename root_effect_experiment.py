@@ -13,7 +13,7 @@ from experiment import one_run
 
 method = 'our'
 
-cascade_model = 'ic'
+cascade_model = 'si'
 root_sampler_names = ['true_root']
 if cascade_model == 'si':
     suffix = "0.1"
