@@ -22,18 +22,12 @@ settings = [
     # for grqc
     {'graphs': ['grqc'],
      'obs_fractions': ["0.5"],
-     'cascade_fractions': ["0.05", "0.1", "0.15", "0.2", "0.25"]},
-    {'graphs': ['grqc'],
-     'obs_fractions': ["0.5", "0.6", "0.7", "0.8", "0.9"],
-     'cascade_fractions': ["0.05"]},
+     'cascade_fractions': ["0.1"]},
 
     # for lattice and infectious
     {'graphs': ['infectious', 'lattice-1024'],
      'obs_fractions': ["0.5"],
-     'cascade_fractions': ["0.1", "0.2", "0.3", "0.4", "0.5"]},
-    {'graphs': ['infectious', 'lattice-1024'],
-     'obs_fractions': ["0.5", "0.6", "0.7", "0.8", "0.9"],
-     'cascade_fractions': ["0.1"]}
+     'cascade_fractions': ["0.2"]}
 ]
 
 for setting in settings:
