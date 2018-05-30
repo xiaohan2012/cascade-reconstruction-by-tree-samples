@@ -23,7 +23,6 @@ def observe_cascade(c, source, q, method='uniform',
     """
     given a cascade `c` and `source`,
     return a list of observed nodes according to probability `q`
-
     """
     all_infection = np.nonzero(c != -1)[0]
     if not source_includable:
@@ -118,8 +117,18 @@ def si(g, p, source=None, stop_fraction=0.5):
     tree = Graph(directed=True)
     for _ in range(g.num_vertices()):
         tree.add_vertex()
+
+    vertex_nodes = set()
     for u, v in edges:
         tree.add_edge(u, v)
+        vertex_nodes.add(u)
+        vertex_nodes.add(v)
+
+    vfilt = tree.new_vertex_property('bool')
+    vfilt.set_value(False)
+    vfilt.a[list(vertex_nodes)] = True
+    tree.set_vertex_filter(vfilt)
+
     return source, infection_times, tree
 
 
