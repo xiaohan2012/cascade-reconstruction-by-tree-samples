@@ -26,7 +26,7 @@ def sample_steiner_trees(g, obs,
     `return_type`: if True, return the set of nodes that are in the sampled steiner tree
     """
     assert method in {'cut', 'cut_naive', 'loop_erased'}
-
+    # print('n_samples', n_samples)
     steiner_tree_samples = []
     # for i in tqdm(range(n_samples), total=n_samples):
     if log:

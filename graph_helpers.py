@@ -522,7 +522,10 @@ def reverse_bfs(topdown_tree, verbose=False):
         visited[v] = True
 
     s = get_root(topdown_tree, tree_type='topdown')
-
+    # print(topdown_tree)
+    # print(s)
+    # assert isinstance(s, int), 'type(s)={}'.format(type(s))
+    
     if verbose:
         print('root', s)
 

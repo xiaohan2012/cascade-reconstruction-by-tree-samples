@@ -1,6 +1,7 @@
 #! /bin/zsh
 
-graphs=(grqc lattice-1024 infectious)
+# graphs=(grqc lattice-1024 infectious)
+graphs=(fb-messages email-univ)
 
 for graph in ${graphs}; do
     python3 preprocess_graph.py \

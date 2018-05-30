@@ -12,3 +12,9 @@ concat ic
 cd ../different-obs-fractions
 concat si
 concat ic
+
+cd ../different-obs-fractions-omleaves
+concat ic
+
+cd ../different-cascade-fractions-omleaves
+concat ic

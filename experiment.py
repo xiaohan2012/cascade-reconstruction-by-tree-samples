@@ -125,9 +125,11 @@ def one_run(g, edge_weights, input_path, output_dir, method='our',
     if method == 'our':
         root_sampler_name = kwargs.get('root_sampler_name')
         root_sampler = get_root_sampler_by_name(root_sampler_name, g=g, obs=obs, c=c)
+        n_samples = kwargs.get('n_sample', 5000)
         inf_probas = infection_probability_shortcut(
             g, edge_weights=edge_weights, obs=obs,
-            root_sampler=root_sampler)
+            root_sampler=root_sampler,
+            n_samples=n_samples)
     elif method == 'min-steiner-tree':
         from minimum_steiner_tree import min_steiner_tree
         # we want the product of weights, so apply negative log

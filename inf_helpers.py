@@ -7,11 +7,12 @@ from graph_tool.centrality import pagerank
 
 def infection_probability_shortcut(g, edge_weights,
                                    obs,
-                                   n_samples=1000,
+                                   n_samples=5000,
                                    root_sampler=None,
                                    sampling_method='loop_erased'):
 
     gi = from_gt(g, edge_weights)
+    # print('n_samples', n_samples)
     sampler = TreeSamplePool(g, n_samples, sampling_method, gi)
     sampler.fill(obs, root_sampler=root_sampler)
     est = TreeBasedStatistics(g)
