@@ -82,3 +82,10 @@ def prepare_cascade_for_netfill(g, beta, p, input_path, output_path):
 def makedir_if_not_there(d):
     if not os.path.exists(d):
         os.makedirs(d)
+
+
+def is_processed(input_path, output_dir):
+    basename = os.path.basename(input_path)
+    output_path = os.path.join(output_dir, basename)
+
+    return os.path.exists(output_path)

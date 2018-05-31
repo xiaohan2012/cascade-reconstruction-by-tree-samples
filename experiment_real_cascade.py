@@ -11,7 +11,10 @@ from itertools import product
 
 from eval_helpers import eval_map
 from experiment import one_run
-from helpers import makedir_if_not_there
+from helpers import makedir_if_not_there, is_processed
+from graph_tool import openmp_set_num_threads
+
+openmp_set_num_threads(1)
 
 parallel = True
 
@@ -54,17 +57,20 @@ for setting in settings:
         makedir_if_not_there(os.path.dirname(eval_result_path))
 
         if parallel:
+            print('parallel: ON')
             rows = Parallel(n_jobs=-1)(delayed(one_run)(g, edge_weights, input_path, output_dir, method,
                                                         root_sampler_name='true_root',
                                                         n_sample=1000)
-                                       for input_path in tqdm(glob(input_dir + '*.pkl')))
+                                       for input_path in tqdm(glob(input_dir + '*.pkl'))
+                                       if not is_processed(input_path, output_dir))
         else:
+            print('parallel: OFF')
             for input_path in tqdm(glob(input_dir + '*.pkl')):
                 one_run(g, edge_weights, input_path, output_dir, method,
                         root_sampler_name='true_root',
                         n_sample=1000)
             
-        assert len(rows) > 0, 'nothing calculated'
+        # assert len(rows) > 0, 'nothing calculated'
 
         scores = eval_map(input_dir, output_dir)
 
