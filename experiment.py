@@ -130,7 +130,7 @@ def one_run(g, edge_weights, input_path, output_dir, method='our',
             g, edge_weights=edge_weights, obs=obs,
             root_sampler=root_sampler,
             n_samples=n_samples,
-            log=True)
+            log=False)
     elif method == 'min-steiner-tree':
         from minimum_steiner_tree import min_steiner_tree
         # we want the product of weights, so apply negative log
