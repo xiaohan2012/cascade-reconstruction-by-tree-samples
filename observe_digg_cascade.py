@@ -16,7 +16,7 @@ obs_method = 'uniform'
 dirname = 'data/digg/'
 num_repeats_per_cascade = 10
 
-obs_fractions = [0.1,  0.2, 0.3, 0.4, 0.5]
+obs_fractions = [0.1, 0.2, 0.3, 0.4, 0.5]
 
 for obs_fraction in tqdm(obs_fractions):
     output_dir = 'cascade/digg-o{}-om{}'.format(obs_fraction, obs_method)
