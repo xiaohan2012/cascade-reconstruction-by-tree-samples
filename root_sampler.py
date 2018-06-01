@@ -1,6 +1,7 @@
 import numpy as np
-import random
 from graph_helpers import pagerank_scores
+from graph_tool.topology import shortest_distance
+from tqdm import tqdm
 
 
 def build_root_sampler_by_pagerank_score(g, obs, c, eps=0.0):
@@ -22,6 +23,34 @@ def build_true_root_sampler(c):
 
     def aux():
         return source
+
+    return aux
+
+
+def build_min_dist_sampler(g, obs, log=False):
+    """minimum distance root sampler
+    """
+    def aux():
+        obs_set = set(obs)
+        min_dist = 9999999999
+        best_root = None
+        iters = g.vertices()
+        if log:
+            iters = tqdm(iters, total=g.num_vertices())
+
+        for v in iters:
+            v = int(v)
+            if v not in obs_set:
+                dist = shortest_distance(
+                    g,
+                    source=v,
+                    target=obs,
+                    pred_map=False)
+                if dist.sum() < min_dist:
+                    min_dist = dist.sum()
+                    best_root = v
+        assert best_root is not None
+        return best_root
 
     return aux
 
@@ -56,5 +85,9 @@ def get_root_sampler_by_name(name, **kwargs):
         return build_root_sampler_by_pagerank_score(g, obs, c, **kwargs)
     elif name is None:
         return None
+    elif name == 'min_dist':
+        g = get_value_or_raise(kwargs, 'g')
+        obs = get_value_or_raise(kwargs, 'obs')
+        return build_min_dist_sampler(g, obs)
     else:
         raise ValueError('valid name ', name)
