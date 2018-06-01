@@ -59,11 +59,16 @@ for setting in settings:
 
         if parallel:
             print('parallel: ON')
-            rows = Parallel(n_jobs=-1)(delayed(one_run)(g, edge_weights, input_path, output_dir, method,
-                                                        root_sampler_name='true_root',
-                                                        n_sample=1000)
-                                       for input_path in tqdm(glob(input_dir + '*.pkl'))
-                                       if not is_processed(input_path, output_dir))
+            if method == 'min-steiner-tree':
+                n_jobs = 4  # memory reason
+            else:
+                n_jobs = -1
+            rows = Parallel(n_jobs=n_jobs)(delayed(one_run)(
+                g, edge_weights, input_path, output_dir, method,
+                root_sampler_name='true_root',
+                n_sample=1000)
+                                           for input_path in tqdm(glob(input_dir + '*.pkl'))
+                                           if not is_processed(input_path, output_dir))
         else:
             print('parallel: OFF')
             for input_path in tqdm(glob(input_dir + '*.pkl')):
