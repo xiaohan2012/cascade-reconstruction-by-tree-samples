@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import os
+import numpy as np
 import pandas as pd
 
 from graph_tool import load_graph
@@ -25,7 +26,7 @@ infection_proba = 0.1
 # a batch of settings to iterate through
 settings = [
     {'graphs': ['digg'],
-     'obs_fractions': ["0.1", "0.2", "0.3", "0.4", "0.5"]}
+     'obs_fractions': np.linspace(0.1, 0.9, 9)}
 ]
 
 for setting in settings:
