@@ -30,26 +30,28 @@ def build_true_root_sampler(c):
 def build_min_dist_sampler(g, obs, log=False):
     """minimum distance root sampler
     """
-    def aux():
-        obs_set = set(obs)
-        min_dist = 9999999999
-        best_root = None
-        iters = g.vertices()
-        if log:
-            iters = tqdm(iters, total=g.num_vertices())
+    # print('min_dist: select root')
+    obs_set = set(obs)
+    min_dist = 9999999999
+    best_root = None
+    iters = g.vertices()
+    if log:
+        iters = tqdm(iters, total=g.num_vertices())
 
-        for v in iters:
-            v = int(v)
-            if v not in obs_set:
-                dist = shortest_distance(
-                    g,
-                    source=v,
-                    target=obs,
-                    pred_map=False)
-                if dist.sum() < min_dist:
-                    min_dist = dist.sum()
-                    best_root = v
-        assert best_root is not None
+    for v in iters:
+        v = int(v)
+        if v not in obs_set:
+            dist = shortest_distance(
+                g,
+                source=v,
+                target=obs,
+                pred_map=False)
+            if dist.sum() < min_dist:
+                min_dist = dist.sum()
+                best_root = v
+    assert best_root is not None
+    
+    def aux():
         return best_root
 
     return aux
