@@ -83,7 +83,10 @@ def gen_inputs_varying_obs(
                             s, c, tree_edges = ic(
                                 g, p, source=source,
                                 stop_fraction=stop_fraction,
-                                return_tree_edges=(observation_method in tree_requiring_methods))
+                                return_tree_edges=(
+                                    (observation_method in tree_requiring_methods)
+                                    or return_tree)
+                            )
                             if return_tree:
                                 tree = filter_graph_by_edges(g, tree_edges)
                             else:
@@ -122,9 +125,13 @@ def one_run(g, edge_weights, input_path, output_dir, method='our',
 
     obs, c = pkl.load(open(input_path, 'rb'))
 
+    nlog_edge_weights = g.new_edge_property('float')
+    nlog_edge_weights.a = -np.log(edge_weights.a)
+
     if method == 'our':
         root_sampler_name = kwargs.get('root_sampler_name')
-        root_sampler = get_root_sampler_by_name(root_sampler_name, g=g, obs=obs, c=c)
+        root_sampler = get_root_sampler_by_name(root_sampler_name, g=g, obs=obs, c=c,
+                                                weights=nlog_edge_weights)
         n_samples = kwargs.get('n_sample', 5000)
         inf_probas = infection_probability_shortcut(
             g, edge_weights=edge_weights, obs=obs,
@@ -134,8 +141,8 @@ def one_run(g, edge_weights, input_path, output_dir, method='our',
     elif method == 'min-steiner-tree':
         from minimum_steiner_tree import min_steiner_tree
         # we want the product of weights, so apply negative log
-        nlog_edge_weights = g.new_edge_property('float')
-        nlog_edge_weights.a = -np.log(edge_weights.a)
+        # nlog_edge_weights = g.new_edge_property('float')
+        # nlog_edge_weights.a = -np.log(edge_weights.a)
         nodes = min_steiner_tree(g, obs,
                                  p=nlog_edge_weights,
                                  return_type='nodes')
@@ -148,9 +155,6 @@ def one_run(g, edge_weights, input_path, output_dir, method='our',
         inf_probas = pagerank_scores(g, obs, weight=edge_weights)
     else:
         raise ValueError('unsupported method')
-    
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
 
     pkl.dump({'inf_probas': inf_probas},
              open(output_path, 'wb'))

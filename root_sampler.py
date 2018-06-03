@@ -4,9 +4,9 @@ from graph_tool.topology import shortest_distance
 from tqdm import tqdm
 
 
-def build_root_sampler_by_pagerank_score(g, obs, c, eps=0.0):
+def build_root_sampler_by_pagerank_score(g, obs, c, weights=None, eps=0.0):
     # print('DEBUG: build_root_sampler_by_pagerank_score: eps={}'.format(eps))
-    pr_score = pagerank_scores(g, obs, eps)
+    pr_score = pagerank_scores(g, obs, eps, weights)
     # print(g)
     # print('len(obs): ', len(obs))
     # print(pr_score)
@@ -27,7 +27,7 @@ def build_true_root_sampler(c):
     return aux
 
 
-def build_min_dist_sampler(g, obs, log=False):
+def build_min_dist_sampler(g, obs, weights=None, log=False):
     """minimum distance root sampler
     """
     # print('min_dist: select root')
@@ -45,6 +45,7 @@ def build_min_dist_sampler(g, obs, log=False):
                 g,
                 source=v,
                 target=obs,
+                weights=weights,
                 pred_map=False)
             if dist.sum() < min_dist:
                 min_dist = dist.sum()
@@ -84,12 +85,16 @@ def get_root_sampler_by_name(name, **kwargs):
         g = get_value_or_raise(kwargs, 'g')
         obs = get_value_or_raise(kwargs, 'obs')
         c = get_value_or_raise(kwargs, 'c')
-        return build_root_sampler_by_pagerank_score(g, obs, c, **kwargs)
+        weights = get_value_or_raise(kwargs, 'weights')
+        return build_root_sampler_by_pagerank_score(
+            g, obs, c, weights=weights,
+            **kwargs)
     elif name is None:
         return None
     elif name == 'min_dist':
         g = get_value_or_raise(kwargs, 'g')
         obs = get_value_or_raise(kwargs, 'obs')
-        return build_min_dist_sampler(g, obs)
+        weights = get_value_or_raise(kwargs, 'weights')
+        return build_min_dist_sampler(g, obs, weights=weights)
     else:
         raise ValueError('valid name ', name)

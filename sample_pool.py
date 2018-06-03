@@ -3,10 +3,9 @@ import networkx as nx
 from graph_tool import GraphView
 
 from core import sample_steiner_trees
-from graph_helpers import (has_vertex, get_edge_weights, filter_graph_by_edges,
+from graph_helpers import (get_edge_weights, filter_graph_by_edges,
                            extract_nodes_from_tuples)
-from proba_helpers import tree_probability_gt, ic_cascade_probability_gt, \
-    cascade_probability_gt
+from proba_helpers import tree_probability_gt, ic_cascade_probability_gt
 from core1 import matching_trees
 from helpers import infected_nodes
 from cascade_generator import incremental_simulation
