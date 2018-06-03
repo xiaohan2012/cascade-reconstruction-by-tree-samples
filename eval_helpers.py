@@ -45,12 +45,11 @@ def evaluate_edge_in_batch(g, input_dir, output_dir, score_func):
     for input_path in tqdm(glob(input_dir + '*.pkl')):
         basename = os.path.basename(input_path)
         output_path = os.path.join(output_dir, basename)
-        try:
-            _, _, true_edges = pkl.load(open(input_path, 'rb'))
-            edge_freq = pkl.load(open(output_path, 'rb'))['edge_freq']
-            scores.append(evaluate_edge_prediction(g, true_edges, edge_freq, score_func))
-        except IOError:
-            pass
+
+        _, _, true_edges = pkl.load(open(input_path, 'rb'))
+        edge_freq = pkl.load(open(output_path, 'rb'))['edge_freq']
+        scores.append(evaluate_edge_prediction(g, true_edges, edge_freq, score_func))
+
     return scores
 
 
