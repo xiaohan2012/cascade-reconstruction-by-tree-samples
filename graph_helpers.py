@@ -8,7 +8,17 @@ from graph_tool import Graph, GraphView, load_graph
 from graph_tool.search import bfs_search, BFSVisitor
 from graph_tool.generation import lattice
 from graph_tool.topology import random_spanning_tree, label_components
+from graph_tool.centrality import pagerank
 
+
+def edge2tuple(e):
+    def aux(tpl):
+        return tuple(sorted(map(int, tpl)))
+    if isinstance(e, tuple):
+        return aux(e)
+    else:
+        return aux([e.source(), e.target()])
+    
 
 def build_graph_from_edges(edges):
     """returns Graph (a new one)
@@ -72,7 +82,7 @@ def extract_nodes(g):
 
 
 def extract_edges(g):
-    return [(int(u), int(v)) for u, v in g.edges()]
+    return [edge2tuple(e) for e in g.edges()]
 
 
 def extract_steiner_tree(sp_tree, terminals, return_nodes=True):
@@ -430,7 +440,7 @@ def k_hop_neighbors(v, g, k):
     return aux(v, k, visited)
 
 
-def pagerank_scores(g, obs, eps=0.0):
+def pagerank_scores(g, obs, eps=0.0, weights=None):
     pers = g.new_vertex_property('float')
     pers.a += eps  # add some noise
 
@@ -438,7 +448,7 @@ def pagerank_scores(g, obs, eps=0.0):
         pers.a[o] += 1
 
     pers.a /= pers.a.sum()
-    rank = pagerank(g, pers=pers)
+    rank = pagerank(g, pers=pers, weight=weights)
 
     for o in obs:
         rank[o] = 0  # cannot select obs nodes

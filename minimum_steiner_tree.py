@@ -3,7 +3,7 @@ import numpy as np
 from graph_tool import Graph, GraphView
 # from graph_tool.topology import shortest_distance
 from graph_tool.topology import min_spanning_tree, shortest_distance
-from graph_helpers import extract_edges_from_pred
+from graph_helpers import extract_edges_from_pred, edge2tuple
 
 
 def build_closure(g, terminals,
@@ -96,6 +96,8 @@ def min_steiner_tree(g, obs_nodes, p=None, return_type='tree', debug=False, verb
 
     if return_type == 'nodes':
         return tree_nodes
+    elif return_type == 'edges':
+        return list(map(edge2tuple, tree_edges))
     elif return_type == 'tree':
         vfilt = g.new_vertex_property('bool')
         vfilt.set_value(False)

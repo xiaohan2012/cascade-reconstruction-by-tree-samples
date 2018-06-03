@@ -1,11 +1,11 @@
 import os
 import pickle
 import argparse
-from graph_helpers import load_graph_by_name
-from experiment import gen_inputs_varying_obs
+
 from tqdm import tqdm
 from glob import glob
-from root_sampler import build_out_degree_root_sampler
+from graph_helpers import load_graph_by_name, extract_edges
+from experiment import gen_inputs_varying_obs
 
 
 parser = argparse.ArgumentParser(description='')
@@ -121,13 +121,14 @@ else:
             min_size=args.min_size,
             max_size=args.max_size,
             n_times=args.n_observation_rounds,
-            return_tree=(args.observation_method in METHODS_WANT_TREE))
+            return_tree=(args.observation_method in METHODS_WANT_TREE) or (args.store_tree))
         
         for j, (obs, c, tree) in enumerate(iters):
             id_ = args.n_observation_rounds * i + j
             path = os.path.join(d, '{}.pkl'.format(id_))
 
             if args.store_tree:
-                pickle.dump((obs, c, tree), open(path, 'wb'))
+                tree_edges = extract_edges(tree)
+                pickle.dump((obs, c, tree_edges), open(path, 'wb'))
             else:
                 pickle.dump((obs, c), open(path, 'wb'))

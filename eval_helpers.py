@@ -1,5 +1,4 @@
 import numpy as np
-import math
 import os
 import pickle as pkl
 from tqdm import tqdm
@@ -22,7 +21,38 @@ def evaluate_score(input_dir, output_dir, score_func):
         
         scores.append(score_func(y_true[hidden], inf_probas[hidden]))
     return scores
-        
+
 
 def eval_map(*args):
     return evaluate_score(*args, score_func=average_precision_score)
+
+
+def evaluate_edge_prediction(g, true_edges, pred_edge_freq, eval_func):
+    edge_true_vect = g.new_edge_property('float')
+    edge_true_vect.set_value(0)
+    for u, v in true_edges:
+        edge_true_vect[g.edge(u, v)] = 1
+        
+    edge_pred_vect = g.new_edge_property('float')
+    edge_pred_vect.set_value(0)
+    for (u, v), f in pred_edge_freq.items():
+        edge_pred_vect[g.edge(u, v)] = f
+    return eval_func(edge_true_vect.a, edge_pred_vect.a)
+
+
+def evaluate_edge_in_batch(g, input_dir, output_dir, score_func):
+    scores = []
+    for input_path in tqdm(glob(input_dir + '*.pkl')):
+        basename = os.path.basename(input_path)
+        output_path = os.path.join(output_dir, basename)
+        try:
+            _, _, true_edges = pkl.load(open(input_path, 'rb'))
+            edge_freq = pkl.load(open(output_path, 'rb'))['edge_freq']
+            scores.append(evaluate_edge_prediction(g, true_edges, edge_freq, score_func))
+        except IOError:
+            pass
+    return scores
+
+
+def eval_edge_map(*args):
+    return evaluate_edge_in_batch(*args, score_func=average_precision_score)
