@@ -80,6 +80,7 @@ for setting in settings:
 
             delayed(one_run_for_edge)(
                 g, edge_weights, input_path, output_dir, method,
+                root_sampler=root_sampler,
                 n_sample=n_sample)
 
             for input_path in tqdm(glob(input_dir + '*.pkl'))
