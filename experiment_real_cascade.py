@@ -21,12 +21,14 @@ parallel = True
 
 methods = ['our', 'pagerank', 'min-steiner-tree']
 
+root_sampler = 'pagerank'
+
 infection_proba = 0.1
 
 # a batch of settings to iterate through
 settings = [
     {'graphs': ['digg'],
-     'obs_fractions': np.linspace(0.6, 0.9, 4)}
+     'obs_fractions': np.linspace(0.1, 0.9, 9)}
 ]
 
 for setting in settings:
@@ -51,8 +53,8 @@ for setting in settings:
             output_dir = 'output/{}/{}/'.format(method, dataset_id)
             eval_result_path = 'eval/{}/{}.pkl'.format(method, dataset_id)
         else:
-            output_dir = 'output/{}-true_root/{}/'.format(method, dataset_id)
-            eval_result_path = 'eval/{}-true_root/{}.pkl'.format(method, dataset_id)
+            output_dir = 'output/{}-{}/{}/'.format(method, root_sampler, dataset_id)
+            eval_result_path = 'eval/{}-{}/{}.pkl'.format(method, root_sampler, dataset_id)
 
         print('eval_dir', os.path.dirname(eval_result_path))
         makedir_if_not_there(os.path.dirname(eval_result_path))
@@ -65,7 +67,7 @@ for setting in settings:
                 n_jobs = -1
             rows = Parallel(n_jobs=n_jobs)(delayed(one_run)(
                 g, edge_weights, input_path, output_dir, method,
-                root_sampler_name='true_root',
+                root_sampler_name=root_sampler,
                 n_sample=1000)
                                            for input_path in tqdm(glob(input_dir + '*.pkl'))
                                            if not is_processed(input_path, output_dir))
@@ -73,7 +75,7 @@ for setting in settings:
             print('parallel: OFF')
             for input_path in tqdm(glob(input_dir + '*.pkl')):
                 one_run(g, edge_weights, input_path, output_dir, method,
-                        root_sampler_name='true_root',
+                        root_sampler_name=root_sampler,
                         n_sample=1000)
             
         # assert len(rows) > 0, 'nothing calculated'
