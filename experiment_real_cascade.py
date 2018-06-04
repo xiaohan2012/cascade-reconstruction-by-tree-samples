@@ -18,10 +18,11 @@ from graph_tool import openmp_set_num_threads
 openmp_set_num_threads(1)
 
 parallel = True
-max_n_jobs = 4
+max_n_jobs = -1
 n_sample = 1000
 
-methods = ['our', 'pagerank', 'min-steiner-tree']
+# , 'pagerank', 'min-steiner-tree'
+methods = ['our']
 
 root_sampler = 'pagerank'
 
@@ -46,7 +47,7 @@ for setting in settings:
         edge_weights = g.new_edge_property('float')
         edge_weights.a = infection_proba
 
-        dataset_id = "{}-o{}-omuniform".format(graph, obs_fraction)
+        dataset_id = "{}-o{:.1f}-omuniform".format(graph, obs_fraction)
         print('method', method)
         print('dataset_id', dataset_id)
 
@@ -69,6 +70,7 @@ for setting in settings:
                 n_jobs = 4  # memory reason
             else:
                 n_jobs = max_n_jobs
+            print('n_jobs', n_jobs)
             rows = Parallel(n_jobs=n_jobs)(delayed(one_run)(
                 g, edge_weights, input_path, output_dir, method,
                 root_sampler_name=root_sampler,
