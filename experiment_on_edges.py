@@ -13,7 +13,7 @@ from eval_helpers import eval_edge_map
 from experiment import one_run_for_edge
 from helpers import is_processed, makedir_if_not_there
 
-n_jobs = 4
+n_jobs = 8
 n_sample = 1000
 
 # method name and root_sampler
@@ -24,7 +24,8 @@ methods = [('our', None),
 
 cascade_models = ['ic', 'si']
 
-graphs = ['lattice-1024', 'infectious', 'fb-messages', 'email-univ', 'grqc']
+# graphs = ['lattice-1024', 'infectious', 'fb-messages', 'email-univ', 'grqc']
+graphs = ['grqc']
 
 # a batch of settings to iterate through
 settings = [
@@ -86,7 +87,7 @@ for setting in settings:
             for input_path in tqdm(glob(input_dir + '*.pkl'))
             if not is_processed(input_path, output_dir))
 
-        assert len(rows) > 0, 'nothing calculated'
+        # assert len(rows) > 0, 'nothing calculated'
 
         if not os.path.exists(eval_result_path):
             scores = eval_edge_map(g, input_dir, output_dir)

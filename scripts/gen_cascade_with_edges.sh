@@ -5,9 +5,9 @@ graphs=(grqc fb-messages email-univ infectious lattice-1024)
 
 n_cascades=100
 n_observation_rounds=1
-cascade_model="ic"
-graph_suffix="_uniform"
-# graph_suffix="_0.1"
+cascade_model="si"
+# graph_suffix="_uniform"
+graph_suffix="_0.1"
 
 obs_method="uniform"
 

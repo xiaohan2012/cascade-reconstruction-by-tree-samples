@@ -18,6 +18,8 @@ from graph_tool import openmp_set_num_threads
 openmp_set_num_threads(1)
 
 parallel = True
+max_n_jobs = 4
+n_sample = 1000
 
 methods = ['our', 'pagerank', 'min-steiner-tree']
 
@@ -56,19 +58,21 @@ for setting in settings:
             output_dir = 'output/{}-{}/{}/'.format(method, root_sampler, dataset_id)
             eval_result_path = 'eval/{}-{}/{}.pkl'.format(method, root_sampler, dataset_id)
 
-        print('eval_dir', os.path.dirname(eval_result_path))
-        makedir_if_not_there(os.path.dirname(eval_result_path))
+        eval_dir = os.path.dirname(eval_result_path)
+        print('eval_dir', eval_dir)
+        makedir_if_not_there(eval_dir)
+        makedir_if_not_there(output_dir)
 
         if parallel:
             print('parallel: ON')
             if method == 'min-steiner-tree':
                 n_jobs = 4  # memory reason
             else:
-                n_jobs = -1
+                n_jobs = max_n_jobs
             rows = Parallel(n_jobs=n_jobs)(delayed(one_run)(
                 g, edge_weights, input_path, output_dir, method,
                 root_sampler_name=root_sampler,
-                n_sample=1000)
+                n_sample=n_sample)
                                            for input_path in tqdm(glob(input_dir + '*.pkl'))
                                            if not is_processed(input_path, output_dir))
         else:
@@ -76,7 +80,7 @@ for setting in settings:
             for input_path in tqdm(glob(input_dir + '*.pkl')):
                 one_run(g, edge_weights, input_path, output_dir, method,
                         root_sampler_name=root_sampler,
-                        n_sample=1000)
+                        n_sample=n_sample)
             
         # assert len(rows) > 0, 'nothing calculated'
 

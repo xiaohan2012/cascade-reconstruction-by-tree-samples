@@ -19,7 +19,7 @@ method = 'our'
 n_jobs = 4
 n_sample = 1000
 
-root_sampler_names = ['min_dist', 'true_root']
+root_sampler_names = ['min_dist', 'pagerank', 'true_root']
 cascade_models = ['si', 'ic']
 
 graphs = ['fb-messages', 'email-univ', 'infectious', 'lattice-1024', 'grqc']
@@ -62,6 +62,7 @@ for setting in settings:
         output_dir = 'output/{}-{}/{}/'.format(method, root_sampler_name, dataset_id)
         eval_result_path = 'eval/{}-{}/{}.pkl'.format(method, root_sampler_name, dataset_id)
 
+        makedir_if_not_there(output_dir)
         makedir_if_not_there(os.path.dirname(eval_result_path))
             
         rows = Parallel(n_jobs=n_jobs)(
@@ -74,7 +75,7 @@ for setting in settings:
             for input_path in tqdm(glob(input_dir + '*.pkl'))
             if not is_processed(input_path, output_dir))
 
-        assert len(rows) > 0, 'nothing calculated'
+        # assert len(rows) > 0, 'nothing calculated'
 
         scores = eval_map(input_dir, output_dir)
 
@@ -83,5 +84,4 @@ for setting in settings:
 
         print('inf_result saved to', output_dir)
         print('evaluation saved to', eval_result_path)
-        print(summ)
-        
+        print(summ)    
