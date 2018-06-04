@@ -13,7 +13,7 @@ from experiment import one_run
 
 method = 'our'
 
-n_samples = [5000, 10000, 15000, 20000, 25000]
+n_samples = [1250, 2500, 5000]
 cascade_models = ['si']
 
 

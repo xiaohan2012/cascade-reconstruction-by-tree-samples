@@ -5,7 +5,9 @@ from time import time
 
 from cascade_generator import si, ic, observe_cascade, CascadeTooSmall
 from helpers import TimeoutError
-from inf_helpers import infection_probability_shortcut, pagerank_scores
+from inf_helpers import (infection_probability_shortcut,
+                         pagerank_scores,
+                         infer_edge_frequency)
 from graph_helpers import filter_graph_by_edges
 from root_sampler import get_root_sampler_by_name
 
@@ -157,4 +159,43 @@ def one_run(g, edge_weights, input_path, output_dir, method='our',
         raise ValueError('unsupported method')
 
     pkl.dump({'inf_probas': inf_probas},
+             open(output_path, 'wb'))
+
+
+def one_run_for_edge(g, edge_weights, input_path, output_dir, method='our',
+                     **kwargs):
+    basename = os.path.basename(input_path)
+    output_path = os.path.join(output_dir, basename)
+
+    if os.path.exists(output_path):
+        # print(output_path, 'procssed, skip')
+        return
+
+    obs, c, _ = pkl.load(open(input_path, 'rb'))
+
+    nlog_edge_weights = g.new_edge_property('float')
+    nlog_edge_weights.a = -np.log(edge_weights.a)
+
+    if method == 'our':
+        root_sampler_name = kwargs.get('root_sampler_name')
+        root_sampler = get_root_sampler_by_name(root_sampler_name, g=g, obs=obs, c=c,
+                                                weights=nlog_edge_weights)
+        n_samples = kwargs.get('n_sample', 1000)
+        edge_freq = infer_edge_frequency(
+            g, edge_weights=edge_weights, obs=obs,
+            root_sampler=root_sampler,
+            n_samples=n_samples,
+            log=False)
+    elif method == 'min-steiner-tree':
+        from minimum_steiner_tree import min_steiner_tree
+        edges = min_steiner_tree(g, obs,
+                                 p=nlog_edge_weights,
+                                 return_type='edges')
+
+        # make it a binary vector
+        edge_freq = {e: 1 for e in edges}
+    else:
+        raise ValueError('unsupported method')
+
+    pkl.dump({'edge_freq': edge_freq},
              open(output_path, 'wb'))

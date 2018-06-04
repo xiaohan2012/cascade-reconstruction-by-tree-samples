@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import os
 import pandas as pd
 
@@ -7,22 +9,23 @@ from tqdm import tqdm
 from joblib import Parallel, delayed
 from itertools import product
 
-from eval_helpers import eval_map
+from eval_helpers import eval_edge_map
+from experiment import one_run_for_edge
 from helpers import is_processed, makedir_if_not_there
-from experiment import one_run
-from graph_tool import openmp_set_num_threads
 
-openmp_set_num_threads(1)
-
-method = 'our'
-
-n_jobs = 4
+n_jobs = 8
 n_sample = 1000
 
-root_sampler_names = ['min_dist', 'pagerank', 'true_root']
-cascade_models = ['si', 'ic']
+# method name and root_sampler
+methods = [('our', None),
+           ('our', 'true-root'),
+           ('our', 'min_dist'),
+           ('min-steiner-tree', None)]
 
-graphs = ['fb-messages', 'email-univ', 'infectious', 'lattice-1024', 'grqc']
+cascade_models = ['ic', 'si']
+
+# graphs = ['lattice-1024', 'infectious', 'fb-messages', 'email-univ', 'grqc']
+graphs = ['grqc']
 
 # a batch of settings to iterate through
 settings = [
@@ -38,10 +41,11 @@ for setting in settings:
     graphs, obs_fractions, cascade_fractions = setting['graphs'], \
                                                setting['obs_fractions'], \
                                                setting['cascade_fractions']
-    for graph, cascade_model, obs_fraction, cascade_fraction, root_sampler_name \
+    for graph, cascade_model, obs_fraction, cascade_fraction, (method, root_sampler) \
             in product(
-                graphs, cascade_models, obs_fractions, cascade_fractions,
-                root_sampler_names):
+                graphs, cascade_models, obs_fractions, cascade_fractions, methods
+            ):
+
         if cascade_model == 'ic':
             # use reversed graph
             suffix = "uniform"
@@ -50,26 +54,34 @@ for setting in settings:
             suffix = "0.1"
             graph_path = 'data/{}/graph_weighted_{}.gt'.format(graph, suffix)
 
-        print('reading graph from ', graph_path)
         g = load_graph(graph_path)
         edge_weights = g.edge_properties['weights']
 
         dataset_id = "{}-m{}-s{}-o{}-omuniform".format(graph, cascade_model, cascade_fraction, obs_fraction)
-        print('method', method)
-        print('dataset_id', dataset_id)
+        # print('method', method)
+        # print('dataset_id', dataset_id)
 
-        input_dir = 'cascade/{}/'.format(dataset_id)
-        output_dir = 'output/{}-{}/{}/'.format(method, root_sampler_name, dataset_id)
-        eval_result_path = 'eval/{}-{}/{}.pkl'.format(method, root_sampler_name, dataset_id)
+        input_dir = 'cascade-with-edges/{}/'.format(dataset_id)
+
+        if method == 'our' and root_sampler is not None:
+            output_dir = 'output-edges/{}-{}/{}/'.format(method, root_sampler, dataset_id)
+            eval_result_path = 'eval-edges/{}-{}/{}.pkl'.format(method, root_sampler, dataset_id)
+        else:
+            output_dir = 'output-edges/{}/{}/'.format(method, dataset_id)
+            eval_result_path = 'eval-edges/{}/{}.pkl'.format(method, dataset_id)
+
+        eval_dir = os.path.dirname(eval_result_path)
+        print('output_dir', output_dir)
+        print('eval_dir', eval_dir)
 
         makedir_if_not_there(output_dir)
-        makedir_if_not_there(os.path.dirname(eval_result_path))
-            
+        makedir_if_not_there(eval_dir)
+
         rows = Parallel(n_jobs=n_jobs)(
 
-            delayed(one_run)(
+            delayed(one_run_for_edge)(
                 g, edge_weights, input_path, output_dir, method,
-                root_sampler_name=root_sampler_name,
+                root_sampler=root_sampler,
                 n_sample=n_sample)
 
             for input_path in tqdm(glob(input_dir + '*.pkl'))
@@ -77,11 +89,11 @@ for setting in settings:
 
         # assert len(rows) > 0, 'nothing calculated'
 
-        scores = eval_map(input_dir, output_dir)
+        if not os.path.exists(eval_result_path):
+            scores = eval_edge_map(g, input_dir, output_dir)
 
-        summ = pd.Series(scores).describe()
-        summ.to_pickle(eval_result_path)
-
-        print('inf_result saved to', output_dir)
-        print('evaluation saved to', eval_result_path)
-        print(summ)    
+            summ = pd.Series(scores).describe()
+            print(summ)
+            summ.to_pickle(eval_result_path)
+        else:
+            print('evaluated already')
