@@ -13,7 +13,7 @@ from eval_helpers import eval_edge_map
 from experiment import one_run_for_edge
 from helpers import is_processed, makedir_if_not_there
 
-n_jobs = 1
+n_jobs = 4
 n_sample = 1000
 
 # method name and root_sampler
@@ -87,9 +87,12 @@ for setting in settings:
             if not is_processed(input_path, output_dir))
 
         assert len(rows) > 0, 'nothing calculated'
-                
-        scores = eval_edge_map(g, input_dir, output_dir)
 
-        summ = pd.Series(scores).describe()
-        print(summ)
-        summ.to_pickle(eval_result_path)
+        if not os.path.exists(eval_result_path):
+            scores = eval_edge_map(g, input_dir, output_dir)
+
+            summ = pd.Series(scores).describe()
+            print(summ)
+            summ.to_pickle(eval_result_path)
+        else:
+            print('evaluated already')
