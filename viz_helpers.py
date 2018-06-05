@@ -30,6 +30,8 @@ SIZE_LARGE = 30
 
 COLOR_BLUE = (31/255, 120/255, 180/255, 1.0)
 COLOR_RED = (1.0, 0, 0, 1.0)
+COLOR_DARK_RED = (0.5793618007033479, 0.042445213537590176, 0.07361784131795752, 1.0)
+
 COLOR_YELLOW = (255/255, 217/255, 47/255, 1.0)
 COLOR_WHITE = (255/255, 255/255, 255/255, 1.0)
 COLOR_ORANGE = (252/255, 120/255, 88/255, 1.0)
@@ -44,6 +46,24 @@ SHAPE_HEXAGON = 'hexagon'
 SHAPE_SQUARE = 'square'
 SHAPE_TRIANGLE = 'triangle'
 SHAPE_PENTAGON = 'pentagon'
+
+
+# map float [0, 1] to [0, 9]
+def build_color_mapper(palette, min_value, max_value):
+    n_colors = len(palette)
+    ranges = np.linspace(min_value, max_value, n_colors+1)
+    
+    def find_seg_id(num):
+        assert num >= min_value and num <= max_value
+        for i in range(len(ranges)-1):
+            if num >= ranges[i] and (num < ranges[i+1] if i < len(ranges)-2 else num <= ranges[i+1]):
+                return i
+        raise ValueError('{} is out of range of {}'.format(num, ranges))
+    
+    def map_number_to_color(num):
+        return palette[find_seg_id(num)] + (1.0, )
+
+    return map_number_to_color
 
 
 def visualize(g, pos,
@@ -137,7 +157,8 @@ def default_plot_setting(g, c, X,
     node_color_info = OrderedDict()
     node_color_info[tuple(X)] = COLOR_BLUE
     if not deemphasize_hidden_infs:
-        node_color_info[tuple(hidden_infs)] = COLOR_YELLOW
+        # print(COLOR_DARK_RED)
+        node_color_info[tuple(hidden_infs)] = COLOR_DARK_RED
     node_color_info[(source, )] = COLOR_GREEN
     node_color_info['default'] = COLOR_WHITE
 
@@ -152,7 +173,7 @@ def default_plot_setting(g, c, X,
     node_size_info[(source, )] = 20 * size_multiplier
     if not deemphasize_hidden_infs:
         node_size_info[tuple(hidden_infs)] = 12.5 * size_multiplier
-    node_size_info['default'] = 5 * size_multiplier
+    node_size_info['default'] = 6 * size_multiplier
 
     node_text_info = {'default': ''}
     
@@ -178,39 +199,8 @@ def tree_plot_setting(g, c, X, tree_edges, color='red', **kwargs):
     return s
 
 
-def query_plot_setting(g, c, X, qs,
-                       node_size=20,
-                       node_shape=SHAPE_TRIANGLE,
-                       indicator_type='text',
-                       color=1.0, **kwargs):
-    s = default_plot_setting(g, c, X, **kwargs)
-    s['node_shape_info'][tuple(qs)] = node_shape
-    s['node_size_info'][tuple(qs)] = node_size
-    # s['node_color_info'][tuple(qs)] = color
-
-    if isinstance(indicator_type, str):
-        indicator_types = {indicator_type}
-    elif isinstance(indicator_type, Iterable):
-        indicator_types = set(indicator_type)
-    else:
-        indicator_types = []
-        
-    if 'text' in indicator_types:
-        for i, q in enumerate(qs):
-            s['node_text_info'][tuple([q])] = str(i)
-        
-    if 'color' in indicator_types:
-        color_depth = np.zeros(len(qs), dtype=np.float)
-
-        for i, q in enumerate(qs):
-            color_depth[i] = i / len(qs)
-
-        s['node_color_info'][tuple(qs)] = color_depth
-
-    return s
-
-
-def heatmap_plot_setting(g, c, X, weight, **kwargs):
+def heatmap_plot_setting(g, c, X, weight, color_mapper=None,
+                         **kwargs):
     inf_nodes = infected_nodes(c)
     hidden_infs = set(inf_nodes) - set(X)
 
@@ -224,95 +214,15 @@ def heatmap_plot_setting(g, c, X, weight, **kwargs):
         s['node_size_info'][tuple(X)] = 10 * multipler
         s['node_size_info'][tuple(hidden_infs)] = 10 * multipler
         s['node_size_info']['default'] = 10 * multipler
-    
-    s['node_color_info'] = weight
+
+    if color_mapper is None:
+        s['node_color_info'] = weight
+    else:
+        s['node_color_info'] = {}
+        for n, p in enumerate(weight):
+            s['node_color_info'][(n, )] = color_mapper(p)
+        
     return s
-
-
-class QueryIllustrator():
-    """illustrate the querying process"""
-
-    def __init__(self, g, obs, c,
-                 pos,
-                 output_size=(300, 300),
-                 vertex_size=20,
-                 vcmap=mpl.cm.Reds):
-        self.g_bak = g
-        self.g = remove_filters(g)  # refresh
-        self.obs = obs
-        self.c = c
-
-        self.pos = pos
-        self.output_size = output_size
-        self.vertex_size = vertex_size
-        self.vcmap = vcmap
-        
-        self.inf_nodes = set((self.c >= 0).nonzero()[0])
-        
-        self.obs_inf = set(self.obs)
-        self.obs_uninf = set()
-        self.hidden_inf = self.inf_nodes - self.obs_inf
-        self.hidden_uninf = set(extract_nodes(g)) - self.inf_nodes
-        
-    def add_query(self, query):
-        if self.c[query] >= 0:  # infected
-            self.obs_inf |= {query}
-            self.hidden_inf -= {query}
-        else:
-            self.obs_uninf |= {query}
-            self.hidden_uninf -= {query}
-            observe_uninfected_node(self.g, query, self.obs_inf)
-
-    def plot_snapshot(self, query, n_samples, ax=None):
-        """plot one snap shot using one query and update node infection/observailability
-        n_samples: num of samples used for inference
-        """
-        self.add_query(query)
-        probas = infection_probability(self.g, self.obs_inf, n_samples=n_samples)
-        # print(probas.shape)
-        vcolor = self.node_colors(probas)
-        vcolor[query] = 1  # highlight query
-
-        vshape = self.node_shapes(query)
-        vshape[query] = SHAPE_PENTAGON  # hack, override it
-
-        graph_draw(self.g_bak,  # use the very earliest graph
-                   pos=self.pos,
-                   vcmap=self.vcmap,
-                   output_size=self.output_size,
-                   vertex_size=self.vertex_size,
-                   vertex_fill_color=vcolor,
-                   vertex_shape=vshape,
-                   mplfig=ax)
-        
-    def node_properties_by_group(self, g, value_groups, dtype, default_val):
-        """
-        value_groups: dict of (dtype, list): (value, list of nodes)
-        """
-        vprop = g.new_vertex_property(dtype)
-        vprop.set_value(default_val)
-        for val, grp in value_groups:
-            for i in grp:
-                vprop[i] = val
-        return vprop
-
-    def node_shapes(self, query):
-        groups = [(SHAPE_PENTAGON, [query]),
-                  (SHAPE_SQUARE, self.obs_inf | self.obs_uninf),
-                  (SHAPE_CIRCLE, self.hidden_inf),
-                  (SHAPE_TRIANGLE, self.hidden_uninf)]
-        return self.node_properties_by_group(self.g_bak, groups, 'string', SHAPE_CIRCLE)
-
-    def node_colors(self, probas):
-        color = self.g_bak.new_vertex_property('float')
-        assert len(probas) == len(color.a)
-        color.a = probas
-
-        # might be fewer vertices in g than g_bak
-        # because of vertex removal
-        # for v, proba in zip(self.g.vertices(), probas):
-        #     color[v] = proba
-        return color
 
 
 class InfectionProbabilityViz():
@@ -325,10 +235,39 @@ class InfectionProbabilityViz():
         self.output_size = output_size
         self.vcmap = vcmap
 
-    def plot(self, c, X, probas, interception_func=None, setting_kwargs={},
+    def plot(self, c, X, probas,
+             interception_func=None, setting_kwargs={},
+             uninfected_small=False,
+             lighten_obs=True,
+             lighten_prediction=False,
+             highlight_missing_infection=False,
+             color_mapper=None,
              **kwargs):
         setting = heatmap_plot_setting(self.g, c, X, probas,
+                                       color_mapper=color_mapper,
                                        **setting_kwargs)
+        if uninfected_small:
+            uninfected = set(np.arange(len(c))) - set(infected_nodes(c))
+            # make terminals larger
+            setting['node_size_info'][tuple(X)] = setting['node_size_info'][tuple(X)] * 1.5
+
+            # make uninfected smaller
+            setting['node_size_info'][tuple(uninfected)] = setting['node_size_info']['default'] / 1.5
+
+        if lighten_obs:
+            setting['node_color_info'][X] = 0
+
+        if lighten_prediction:
+
+            depth = setting['node_color_info']
+            source = cascade_source(c)
+            depth[depth == 1] = 0.5
+            depth[source] = 1
+
+        if highlight_missing_infection:
+            missing = set(infected_nodes(c)) - set(X) - set((probas==1).nonzero()[0])
+            
+            
         if interception_func is not None:
             interception_func(setting)
         visualize(self.g, self.pos,
@@ -337,10 +276,10 @@ class InfectionProbabilityViz():
         
 
 def set_cycler(ax):
-    ax.set_prop_cycle(cycler('color', [COLOR_ORANGE, COLOR_PINK, COLOR_BLUE, COLOR_GREEN, COLOR_YELLOW,
+    ax.set_prop_cycle(cycler('color', [COLOR_ORANGE, COLOR_BLUE, COLOR_PINK, COLOR_GREEN, COLOR_YELLOW,
                                        COLOR_BLACK, COLOR_GREY]) +
                       cycler('linestyle', ['-', ':', '--', '-.', '-', ':', '-']) +
-                      cycler('marker', ['o', '*', '^', 'v', 's', 'd', 'p']) +
+                      cycler('marker', ['o', '*', '^', 'v', 'p', 'd', 's']) +
                       cycler('lw', [2, 2, 2, 2, 2, 2, 2]))
 
 
