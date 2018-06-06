@@ -24,8 +24,8 @@ methods = [('our', None),
 
 cascade_models = ['ic', 'si']
 
-# graphs = ['lattice-1024', 'infectious', 'fb-messages', 'email-univ', 'grqc']
-graphs = ['grqc']
+graphs = ['lattice-1024', 'infectious', 'fb-messages', 'email-univ', 'grqc']
+# graphs = ['grqc']
 
 # a batch of settings to iterate through
 settings = [
