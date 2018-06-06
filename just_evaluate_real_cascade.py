@@ -31,7 +31,7 @@ infection_proba = 0.1
 # a batch of settings to iterate through
 settings = [
     {'graphs': ['digg'],
-     'obs_fractions': [0.4]}
+     'obs_fractions': [0.8]}
 ]
 
 for setting in settings:
