@@ -31,7 +31,7 @@ infection_proba = 0.1
 # a batch of settings to iterate through
 settings = [
     {'graphs': ['digg'],
-     'obs_fractions': [0.8]}
+     'obs_fractions': [0.3, 0.4, 0.5]}
 ]
 
 for setting in settings:
@@ -59,11 +59,12 @@ for setting in settings:
             output_dir = 'output/{}-{}/{}/'.format(method, root_sampler, dataset_id)
             eval_result_path = 'eval/{}-{}/{}.pkl'.format(method, root_sampler, dataset_id)
 
+        print('inf_dir', output_dir)
+        
         eval_dir = os.path.dirname(eval_result_path)
         print('eval_dir', eval_dir)
         makedir_if_not_there(eval_dir)
         makedir_if_not_there(output_dir)
-
 
         scores = eval_map(input_dir, output_dir)
 

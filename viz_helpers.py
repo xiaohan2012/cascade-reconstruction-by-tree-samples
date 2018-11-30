@@ -75,7 +75,8 @@ def visualize(g, pos,
               node_text_info={},
               color_map=mpl.cm.Reds,
               ax=None,
-              output=None):
+              output=None,
+              **kwargs):
 
     def populate_property(dtype, info, on_edge=False):
         if on_edge:
@@ -144,7 +145,8 @@ def visualize(g, pos,
                mplfig=ax,
                vcmap=color_map,
                bg_color=[256, 256, 256, 256],
-               output=output)
+               output=output,
+               **kwargs)
 
 
 def default_plot_setting(g, c, X,
@@ -158,7 +160,7 @@ def default_plot_setting(g, c, X,
     node_color_info[tuple(X)] = COLOR_BLUE
     if not deemphasize_hidden_infs:
         # print(COLOR_DARK_RED)
-        node_color_info[tuple(hidden_infs)] = COLOR_DARK_RED
+        node_color_info[tuple(hidden_infs)] = COLOR_YELLOW
     node_color_info[(source, )] = COLOR_GREEN
     node_color_info['default'] = COLOR_WHITE
 

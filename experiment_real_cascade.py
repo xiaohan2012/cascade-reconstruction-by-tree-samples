@@ -31,8 +31,10 @@ infection_proba = 0.1
 # a batch of settings to iterate through
 settings = [
     {'graphs': ['digg'],
-     'obs_fractions': np.linspace(0.6, 0.9, 4)}
+     'obs_fractions': np.linspace(0.3, 0.5, 3)}
 ]
+
+print(settings)
 
 for setting in settings:
     graphs, obs_fractions = setting['graphs'], \
